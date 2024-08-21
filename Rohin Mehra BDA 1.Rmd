@@ -1,0 +1,193 @@
+---
+title: "Big Data Analysis Assignment"
+author: "Rohin Mehra   Student Number: 3082862"
+date: "`r Sys.Date()`"
+output: pdf_document
+toc: true
+toc_depth: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,warning = FALSE,message = FALSE)
+```
+
+## **MISSION STATEMENT**
+
+In this assignment we will perform exploratory data analysis and calculate the strength of relationships between the variables of the data set. The housing data set contains the prices and other attributes of almost 35,000 houses in the city of Melbourne.
+
+Reading the data set and storing it into a data set so that we can view structure of our data frame and perform exploratory data analysis.
+
+So we now have read our CSV file and
+
+```{r}
+housing.dataset<-read.csv(file = "/Users/rohinmehra/Downloads/melbourne_data.csv",header = TRUE)
+```
+
+## **Libraries that are being involved for both analysis**
+
+1.  GGPlot ( Ggplot is a package in R by tidyverse. It is based on Leland Wilkinson's Grammar of Graphics . ggplot creates complex and intricate plots using the principles listed in the grammar of graphics. Users can use all types of data, such as uni variate, multivariate, or categorical, to create data )
+2.  Tidy Verse ( The tidyverse is an opinionated collection of R packages designed for data science. All packages share an underlying design philosophy, grammar, and data structures. The core tidyverse includes the packages that you're likely to use in everyday data analyses. )
+3.  Dplyr ( dplyr is an R package for working with structured data both in and outside of R. dplyr makes data manipulation for R users easy, consistent, and performance. With dplyr as an interface to manipulating Spark Data Frames, you can: Select, filter, and aggregate data )
+
+```{r}
+library(ggplot2)
+library(tidyverse)
+require("RColorBrewer")
+library(dplyr)
+```
+
+## Data Set Structure and it's Associations
+
+We will see now how does our original data is structured this will include detail's such as what all column's are present and what information they hold in association to our data set.
+
+```{r}
+str(housing.dataset)
+head(housing.dataset)
+```
+
+Now we know what all column's are present in our CSV file and also know that this data is not clean so we need cleaning .
+
+## **Data Set Cleaning**
+
+Next step is we clean data by replacing "NA" values with the figure of "0" .we make a data frame of our data set and store it in object " t " , then we detect all NA values in our data frame and replace them with 0 because we don't want to omit and row while cleaning .
+
+Final result is stored in object " f " this is our clean data frame free of NA values.
+
+```{r}
+t<-data.frame(housing.dataset)
+```
+
+1.  **Unclean data frame :**
+
+```{r}
+head(t)
+```
+
+2.  **Partial clean data frame, Here NA values are replaced by figure of "0" :**
+
+```{r}
+f<-replace(t ,is.na(t), 0)
+head(f)
+```
+
+3.  **Final cleaning step now we will eliminate row's which have Building Area equal to 0 , Price equal to 0 ,land size not equal to 0 as it will affect our plotting and exploratory analysis. Finally our data frame is cleaned of missing values , NA values and is ready for analysis.**
+
+```{r}
+f<-subset(f,f$Price != 0 & f$BuildingArea != 0 & f$Landsize != 0)
+head(f)
+str(f)
+```
+
+## Start Of Analysis
+
+1.  **Scatter Plot**
+
+    **Definition** : A scatter plot (aka scatter chart, scatter graph) uses dots to represent values for two different numeric variables. The position of each dot on the horizontal and vertical axis indicates values for an individual data point. Scatter plots are used to observe relationships between variables.
+
+    **Use in Data Frame** : Now we will plot a scatter plot to show a relation between the price of the houses and land area so that we can observe how price of a house changes with land size also we can also observe that the color's of the point's is based on the type of the house in our data frame.
+
+    ```{r}
+    ggplot(f,aes(x = Price , y = Landsize,size = BuildingArea  , colour = Type))+ geom_point() + ggtitle("Scatter Plot Price V/S Land Size")
+    ```
+
+2.  **Histogram Plot**
+
+    **Definition** : A histogram is a graphical representation of data points organised into user-specified ranges. Similar in appearance to a bar graph, the histogram condenses a data series into an easily interpreted visual by taking many data points and grouping them into logical ranges or bins.
+
+    **Use in Data Frame** : Now we will plot a Histogram to show a relation between the number of rooms in a houses and Number of houses with similar rooms, so that we can observe how frequency of houses changes with quantity of rooms.
+
+```{r}
+hist(f$Rooms, main = "Histogram For Rooms", xlab = "Rooms")
+```
+
+3.  **Bar Chart**
+
+    **Definition** : A bar chart (or graph) organises information into a graphic using bars of different lengths. The length of these bars is proportional to the size of the information they represent. To read a bar chart, consider the length of the bar connected to each category to find its value.Bar charts organise categorical data, whereas histograms organise numerical data.
+
+    **Use in Data Frame** : Now we will plot a Bar Chart to show a relation between the number of the houses and house type so that we can observe how number of the houses change with house type.
+
+    ```{r}
+    ggplot(f,aes(x = Type , color = "Orange")) + geom_bar()+ labs(title = "Bar Chart Type V/S Number of Houses") 
+    ```
+
+4.  **Pie Chart**
+
+    **Definition** : A pie chart (or a circle chart) is a circular statistical graphic, which is divided into slices to illustrate numerical proportions. In a pie chart, the arc length of each slice (and consequently its central angle and area) is proportional to the quantity it represents. While it is named for its resemblance to a pie which has been sliced, there are variations in the way it can be presented. The earliest known pie chart is generally credited to William Playfair's Statistical Breviary of 1801.
+
+    **Use in Data Frame** : Now we will plot a Pie Chart to show a relation between the number of the houses and house type so that we can observe what percentage of houses are in which type of houses.
+
+```{r}
+PieByType<- f %>% group_by(Type) %>% summarise(counts = n(),
+                                                percentage = n()/nrow(f))
+ggplot(data = PieByType,aes(x = "", y = percentage, fill=Type))+geom_col(colour = "Black")+coord_polar("y",start = 0)
+
+```
+
+## Main Focus
+
+1.  Histogram of Price Variable with summary
+
+    ```{r}
+    options(scipen = 999)
+    hist(f$Price, main = "Histogram For Price", xlab = "Price") 
+    ```
+
+summary of Price variable where we can observe Minimum Price of a house , Maximum Price of a house , Mean Price of houses , Median Price of houses and Variance which is "471970520767" of houses present in our data frame.
+
+Also "options(scipen = 999)" render's r studio compiler not to show hexadecimal values on graphs we will plot next .
+
+```{r}
+summary(f$Price)
+var(f$Price)
+```
+
+1.  Histogram For Median Of Price (Here we group prices with type of houses take their sum and then take median out.)
+
+    ```{r}
+    Medianby_Type<-f %>% group_by(Type) %>% summarise( Count=n(),PriceSum = sum(Price),Median_Price = median(Price))
+    hist(Medianby_Type$Median_Price, main = "Histogram For Median Of Price", xlab = "Price")
+    ```
+
+2.  Histogram For Variance Of Price (Here we group prices with type of houses take their sum and then take variance out.)
+
+    ```{r}
+    options(scipen = 999)
+    Varianceby_Type<-f %>% group_by(Type) %>% summarise( Count=n(),PriceSum = sum(Price),Variance_Price = var(Price))
+    hist(Varianceby_Type$Variance_Price, main = "Histogram For Variance Of Price", xlab = "Price")
+    ```
+
+3.  Histogram For Mean Of Price (Here we group prices with type of houses take their sum and then take mean out.)
+
+    ```{r}
+    Meanby_Type<-f %>% group_by(Type) %>% summarise( Count=n(),PriceSum = sum(Price),Mean_Price = mean(Price))
+    hist(Meanby_Type$Mean_Price, main = "Histogram For Mean Of Price", xlab = "Price")
+    ```
+
+4.  We will now group houses by some price ranges like low, medium, high, etc. and plot them separately .
+
+5.  Now we list the frequencies of houses for various types. Create 2 scatter plots and color the house price by land size and type.
+
+    ```{r}
+    Frequency_House<- f %>%  group_by(Type) %>% 
+      summarise(House = n(), countSum = sum(as.integer(Propertycount)), Mean_count = mean(Propertycount), Cost = Price)
+    ggplot(Frequency_House,aes(x = "", y = House ,size = f$Price  , colour = Type))+ geom_point() + ggtitle("Frequency of Houses (Colour by Type)")
+
+    Frequency_House_1<- f %>%  group_by(Landsize) %>% 
+      summarise(House = n(), countSum = sum(as.integer(Propertycount)), Mean_count = mean(Propertycount), Cost = Price)
+    ggplot(Frequency_House_1,aes(x = "", y = House ,size = f$Price  , colour = Landsize))+ geom_point() + ggtitle("Frequency of Houses (Colour by Land size)")
+
+    ```
+
+6.  What all different attributes are correlated with the price and which 3 variables are correlated the most with the price.
+
+    1.  Land Size
+    2.  Building Area
+    3.  Number of Rooms
+
+```{r}
+plot(f$Landsize,f$Price,xlab = "Land Size",ylab = "Price of House",main = "Corelation of Landsize V/S Price")
+plot(f$BuildingArea,f$Price,xlab = "Building Area",ylab = "Price of House",main = "Corelation of Building Area V/S Price")
+plot(f$Rooms,f$Price,xlab = "Number of Rooms",ylab = "Price of House",main = "Corelation of Rooms V/S Price")
+```
+
+we conclude the work by saying that as we go higher in land size we should expect increase in price but its not certain that number of room will be greater in a higher costing house.
